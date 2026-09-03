@@ -1,7 +1,6 @@
 package com.rules.android.lint.cli
 
 import java.lang.reflect.InvocationTargetException
-import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Path
 import kotlin.io.path.exists
@@ -103,7 +102,10 @@ class AndroidLintCliInvoker(
             require(jar.isRegularFile() && jar.exists()) {
               "Error: The provided jar does not exist!: ${jar.pathString}"
             }
-            URL("file:${jar.pathString}")
+            // Path.toUri() over URL("file:$path"): the URL(String) constructor is deprecated in
+            // JDK 20+, and it does no escaping, so any jar path containing a space or other
+            // reserved character produced a URL the classloader silently failed to resolve.
+            jar.toUri().toURL()
           }.toTypedArray()
 
       return AndroidLintCliInvoker(classLoader = URLClassLoader(classpath, parentClassloader))
