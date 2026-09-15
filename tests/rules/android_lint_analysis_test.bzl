@@ -57,6 +57,40 @@ def _android_lint_action_impl(ctx):
 
 _android_lint_action_test = analysistest.make(_android_lint_action_impl)
 
+def _android_lint_regenerate_baseline_action_impl(ctx):
+    env = analysistest.begin(ctx)
+    target = analysistest.target_under_test(env)
+    asserts.true(env, AndroidLintResultsInfo in target)
+    asserts.equals(
+        env,
+        "analysis_fixture_lint_regenerate_baseline.xml",
+        target[AndroidLintResultsInfo].output.basename,
+    )
+
+    actions = [
+        action
+        for action in analysistest.target_actions(env)
+        if action.mnemonic == "AndroidLint"
+    ]
+    asserts.equals(env, 1, len(actions))
+    if actions:
+        argv = actions[0].argv
+
+        # The whole point of the rule: report what a baseline would otherwise suppress.
+        asserts.true(env, "--regenerate-baseline-files" in argv)
+        asserts.false(env, "--baseline-file" in argv)
+        asserts.equals(
+            env,
+            target[AndroidLintResultsInfo].output.path,
+            _argument_value(argv, "--output"),
+        )
+
+    return analysistest.end(env)
+
+_android_lint_regenerate_baseline_action_test = analysistest.make(
+    _android_lint_regenerate_baseline_action_impl,
+)
+
 def android_lint_analysis_test_suite(name):
     """Defines the android_lint analysis test suite.
 
@@ -68,7 +102,15 @@ def android_lint_analysis_test_suite(name):
         name = action_test,
         target_under_test = ":analysis_fixture_lint",
     )
+    regenerate_baseline_test = name + "_regenerate_baseline_action_test"
+    _android_lint_regenerate_baseline_action_test(
+        name = regenerate_baseline_test,
+        target_under_test = ":analysis_fixture_lint_regenerate_baseline",
+    )
     native.test_suite(
         name = name,
-        tests = [":" + action_test],
+        tests = [
+            ":" + action_test,
+            ":" + regenerate_baseline_test,
+        ],
     )

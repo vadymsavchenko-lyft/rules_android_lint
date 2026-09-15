@@ -1,5 +1,10 @@
 load("@rules_android//android:rules.bzl", "android_library")
-load("@rules_android_lint//rules:defs.bzl", "android_lint", "android_lint_test")
+load(
+    "@rules_android_lint//rules:defs.bzl",
+    "android_lint",
+    "android_lint_regenerate_baseline",
+    "android_lint_test",
+)
 load("@rules_android_lint//toolchains:toolchain.bzl", "android_lint_toolchain")
 
 android_library(
@@ -25,6 +30,15 @@ android_lint_test(
     name = "lib_lint_test",
     srcs = ["Foo.java"],
     baseline = "lib_lint_test_lint_baseline.xml",
+    lib = ":lib",
+)
+
+# Same inputs as lib_lint_test, but reports the finding that its baseline suppresses. Building
+# this and copying the output over lib_lint_test_lint_baseline.xml is how a baseline gets
+# refreshed.
+android_lint_regenerate_baseline(
+    name = "lib_lint_test_lint_regenerate_baseline",
+    srcs = ["Foo.java"],
     lib = ":lib",
 )
 

@@ -8,6 +8,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":android_lint",
+        ":android_lint_regenerate_baseline",
         ":android_lint_test",
         ":defs",
         ":extensions",
@@ -43,6 +44,7 @@ bzl_library(
     visibility = ["//visibility:public"],
     deps = [
         ":android_lint",
+        ":android_lint_regenerate_baseline",
         ":android_lint_test",
         ":utils",
         "//toolchains:toolchain",
@@ -81,6 +83,17 @@ bzl_library(
 bzl_library(
     name = "android_lint",
     srcs = ["android_lint.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":attrs",
+        ":impl",
+        ":providers",
+    ],
+)
+
+bzl_library(
+    name = "android_lint_regenerate_baseline",
+    srcs = ["android_lint_regenerate_baseline.bzl"],
     visibility = ["//visibility:public"],
     deps = [
         ":attrs",
