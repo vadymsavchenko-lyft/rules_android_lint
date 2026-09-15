@@ -1,4 +1,4 @@
-load("//rules:defs.bzl", "android_lint")
+load("//rules:defs.bzl", "android_lint", "android_lint_regenerate_baseline")
 load(":android_lint_analysis_test.bzl", "android_lint_analysis_test_suite")
 
 filegroup(
@@ -14,6 +14,13 @@ android_lint(
     lib = ":fixture_lib",
     tags = ["manual"],
     warnings_as_errors = True,
+)
+
+android_lint_regenerate_baseline(
+    name = "analysis_fixture_lint_regenerate_baseline",
+    srcs = ["Fixture.java"],
+    lib = ":fixture_lib",
+    tags = ["manual"],
 )
 
 android_lint_analysis_test_suite(name = "tests")
