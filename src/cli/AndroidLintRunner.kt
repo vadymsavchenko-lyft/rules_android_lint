@@ -7,6 +7,7 @@ import kotlin.io.path.absolutePathString
 import kotlin.io.path.exists
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.pathString
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 internal class AndroidLintRunner(
@@ -70,6 +71,9 @@ internal class AndroidLintRunner(
       } finally {
         invokerCache.release(invoker)
       }
+
+    // Ex: file="bazel-out/darwin_arm64-opt/bin/features/locations/lib.abi.jar!/com/my/android/domain/geo/Address.class"
+    args.output.writeText(args.output.readText().replace(Regex("""file="[^"]*\.jar!/"""), """file=""""))
 
     return when (exitCode) {
       AndroidLintCliInvoker.ERRNO_SUCCESS,
