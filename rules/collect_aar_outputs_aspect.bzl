@@ -56,8 +56,12 @@ def _collect_aar_outputs_aspect(tgt, ctx):
             progress_message = "Extracting AAR %s's " % (ctx.label.name),
             command = ("unzip -q -o %s -d %s/ " % (aar.path, aar_extract.path)),
         )
+        # Ex: bazel-bin/design/ui/compose/lib.aar -> …/aars/design_ui_compose_aars_lib_aar_contents.aar
+        aar_link = ctx.actions.declare_file("aars/%s.aar" % aar_extract.short_path.replace("/", "_").replace("-", "_"))
+        ctx.actions.symlink(output = aar_link, target_file = aar)
+
         current_info = AndroidLintAARNodeInfo(
-            aar = aar,
+            aar = aar_link,
             aar_dir = aar_extract,
         )
 

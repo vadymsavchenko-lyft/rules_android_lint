@@ -155,7 +155,7 @@ def _run_android_lint(
         toolchain = _ANDROID_LINT_TOOLCHAIN_TYPE,
         execution_requirements = {
             "supports-workers": "1",
-            "supports-multiplex-workers": "1",
+            "supports-multiplex-workers": "0",
         },
         env = {
             # https://googlesamples.github.io/android-custom-lint-rules/usage/variables.md.html
@@ -201,6 +201,7 @@ def process_android_lint_issues(ctx, regenerate):
     # Collect the transitive classpath jars to run lint against.
     deps = []
     aars = []
+    aar_header_jars = []
     for dep in ctx.attr.deps:
         if JavaInfo in dep:
             deps.append(dep[JavaInfo].compile_jars)
@@ -210,6 +211,8 @@ def process_android_lint_issues(ctx, regenerate):
             direct = []
             if dep[_AndroidLintAARInfo].aar:
                 direct = [dep[_AndroidLintAARInfo].aar]
+                if dep[_AndroidLintAARInfo].aar.aar and JavaInfo in dep:
+                    aar_header_jars += [output.compile_jar for output in dep[JavaInfo].java_outputs]
             aars.append(depset(
                 direct = direct,
                 transitive = [
@@ -220,6 +223,13 @@ def process_android_lint_issues(ctx, regenerate):
     # Append the compiled R files for our self
     if ctx.attr.lib and AndroidLibraryResourceClassJarProvider in ctx.attr.lib:
         deps.append(ctx.attr.lib[AndroidLibraryResourceClassJarProvider].jars)
+
+    if ctx.attr.lib and JavaInfo in ctx.attr.lib:
+        deps.append(ctx.attr.lib[JavaInfo].compile_jars)
+
+    classpath_jars = depset(transitive = deps).to_list()
+    if aar_header_jars:
+        classpath_jars = [jar for jar in classpath_jars if jar not in aar_header_jars]
 
     config = None
     if ctx.attr.android_lint_config:
@@ -236,7 +246,7 @@ def process_android_lint_issues(ctx, regenerate):
         module_name = _get_module_name(ctx),
         output = output,
         srcs = ctx.files.srcs,
-        deps = depset(transitive = deps),
+        deps = classpath_jars,
         aars = depset(transitive = aars),
         resource_files = ctx.files.resource_files,
         manifest = manifest,
