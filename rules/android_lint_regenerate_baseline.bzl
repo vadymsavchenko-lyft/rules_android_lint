@@ -12,6 +12,10 @@ load(
     ":providers.bzl",
     _AndroidLintResultsInfo = "AndroidLintResultsInfo",
 )
+load(
+    ":utils.bzl",
+    _ANDROID_SDK_TOOLCHAIN_TYPE = "ANDROID_SDK_TOOLCHAIN_TYPE",
+)
 
 def _impl(ctx):
     android_lint_results = _process_android_lint_issues(ctx, regenerate = True)
@@ -43,5 +47,6 @@ android_lint_regenerate_baseline = rule(
     ],
     toolchains = [
         "//toolchains:toolchain_type",
+        _ANDROID_SDK_TOOLCHAIN_TYPE,
     ],
 )
