@@ -1,4 +1,10 @@
+load("@rules_kotlin//kotlin:core.bzl", "kt_kotlinc_options")
 load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+kt_kotlinc_options(
+    name = "kotlinc_options",
+    visibility = ["//src:__subpackages__"],
+)
 
 py_library(
     name = "android_lint_output_validator_lib",

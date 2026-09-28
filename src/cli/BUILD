@@ -13,6 +13,7 @@ java_binary(
 kt_jvm_library(
     name = "lint",
     srcs = glob(["*.kt"]),
+    kotlinc_opts = "//src:kotlinc_options",
     visibility = ["//visibility:public"],
     deps = [
         "//src/worker",

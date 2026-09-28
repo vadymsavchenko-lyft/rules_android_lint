@@ -5,6 +5,7 @@ load("//rules:defs.bzl", "android_lint_test")
 kt_jvm_library(
     name = "worker",
     srcs = glob(["*.kt"]),
+    kotlinc_opts = "//src:kotlinc_options",
     visibility = ["//visibility:public"],
     deps = [
         "@bazel_worker_java//:worker_protocol_java_proto",
