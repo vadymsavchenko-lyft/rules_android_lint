@@ -227,6 +227,9 @@ def process_android_lint_issues(ctx, regenerate):
     if ctx.attr.lib and JavaInfo in ctx.attr.lib:
         deps.append(ctx.attr.lib[JavaInfo].compile_jars)
 
+    if ctx.files.resource_files or ctx.file.manifest:
+        deps.append(depset([_utils.get_android_jar(ctx)]))
+
     classpath_jars = depset(transitive = deps).to_list()
     if aar_header_jars:
         classpath_jars = [jar for jar in classpath_jars if jar not in aar_header_jars]
