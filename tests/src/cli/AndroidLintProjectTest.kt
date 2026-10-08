@@ -55,4 +55,43 @@ class AndroidLintProjectTest {
       """.trimIndent().replace("{root}", tmpDirectory.root.absolutePath),
     )
   }
+
+  @Test
+  fun `test extracted aar jars are added to the classpath`() {
+    val extractedDir = tmpDirectory.newFolder("tmp/unpacked_aars/bar/").toPath()
+    tmpDirectory.newFile("tmp/unpacked_aars/bar/classes.jar")
+    tmpDirectory.newFolder("tmp/unpacked_aars/bar/libs/")
+    tmpDirectory.newFile("tmp/unpacked_aars/bar/libs/inner.jar")
+    tmpDirectory.newFile("tmp/unpacked_aars/bar/libs/notes.txt")
+
+    assertThat(
+      createProjectXMLString(
+        moduleName = "test_module_name",
+        rootDir = tmpDirectory.root.absolutePath,
+        srcs = emptyList(),
+        resources = emptyList(),
+        androidManifest = null,
+        classpathJars = emptyList(),
+        classpathAars = emptyList(),
+        classpathExtractedAarDirectories =
+          listOf(
+            Pair(tmpDirectory.newPath("Bar.aar"), extractedDir),
+          ),
+        customLintChecks = emptyList(),
+      ),
+    ).isEqualTo(
+      """
+      <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+      <project>
+        <root dir="{root}"/>
+        <module android="false" name="test_module_name">
+          <aar extracted="{root}/tmp/unpacked_aars/bar" file="{root}/Bar.aar"/>
+          <classpath jar="{root}/tmp/unpacked_aars/bar/classes.jar"/>
+          <classpath jar="{root}/tmp/unpacked_aars/bar/libs/inner.jar"/>
+        </module>
+      </project>
+
+      """.trimIndent().replace("{root}", tmpDirectory.root.absolutePath),
+    )
+  }
 }
