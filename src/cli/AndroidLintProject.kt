@@ -8,6 +8,10 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 import kotlin.io.path.absolutePathString
+import kotlin.io.path.extension
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.pathString
 
 internal fun createProjectXMLString(
@@ -82,6 +86,14 @@ internal fun createProjectXMLString(
     element.setAttribute("file", aar.absolutePathString())
     element.setAttribute("extracted", unzippedDir.absolutePathString())
     moduleElement.appendChild(element)
+
+    // Lint's K2 analysis models each <aar> as its own module that the main module can't see into,
+    // so the AAR's classes are also listed on the classpath for type resolution.
+    unzippedDir.extractedAarJars().forEach { jar ->
+      val classpathElement = document.createElement("classpath")
+      classpathElement.setAttribute("jar", jar.absolutePathString())
+      moduleElement.appendChild(classpathElement)
+    }
   }
 
   return StringWriter()
@@ -92,4 +104,16 @@ internal fun createProjectXMLString(
       transformer.transform(DOMSource(document), StreamResult(this))
     }.buffer
     .toString()
+}
+
+private fun Path.extractedAarJars(): List<Path> {
+  val classesJar = resolve("classes.jar").takeIf { it.isRegularFile() }
+  val libsDir = resolve("libs")
+  val libJars =
+    if (libsDir.isDirectory()) {
+      libsDir.listDirectoryEntries().filter { it.isRegularFile() && it.extension == "jar" }.sorted()
+    } else {
+      emptyList()
+    }
+  return listOfNotNull(classesJar) + libJars
 }
